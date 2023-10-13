@@ -1,0 +1,280 @@
+Business Intelligence Lab Submission Markdown
+================
+Business-intelligent
+13/10/2023
+
+- [Student Details](#student-details)
+- [Setup Chunk](#setup-chunk)
+- [**Explanatory Data Analysis**](#explanatory-data-analysis)
+  - [Loading Libraries](#loading-libraries)
+  - [Loading Dataset](#loading-dataset)
+  - [Text Preprocessing](#text-preprocessing)
+- [Select the group, gender, average course evaluation
+  rating,](#select-the-group-gender-average-course-evaluation-rating)
+- [and most importantly, the likes and wishes from the original
+  dataset](#and-most-importantly-the-likes-and-wishes-from-the-original-dataset)
+- [Function to remove special characters and convert all text to a
+  standard](#function-to-remove-special-characters-and-convert-all-text-to-a-standard)
+- [lower case](#lower-case)
+- [Convert everything to lower case (to standardize the
+  text)](#convert-everything-to-lower-case-to-standardize-the-text)
+- [After removing special characters and converting everything to lower
+  case](#after-removing-special-characters-and-converting-everything-to-lower-case)
+- [Function to censor/remove unwanted
+  words](#function-to-censorremove-unwanted-words)
+- [unnest and remove stopwords, undesirable words, and short
+  words](#unnest-and-remove-stopwords-undesirable-words-and-short-words)
+  - [Inner Join the Likes/Wishes with the Corresponding
+    Sentiment](#inner-join-the-likeswishes-with-the-corresponding-sentiment)
+  - [Overall Sentiment](#overall-sentiment)
+- [Various organizations have brand guidelines. You can download
+  the](#various-organizations-have-brand-guidelines-you-can-download-the)
+- [University’s brand guidelines from
+  here:](#universitys-brand-guidelines-from-here)
+- [https://strathmore.edu/brand-guidelines/](#httpsstrathmoreedubrand-guidelines)
+  - [Evaluation Wishes —-](#evaluation-wishes--)
+- [Various organizations have brand guidelines. You can download
+  the](#various-organizations-have-brand-guidelines-you-can-download-the-1)
+- [University’s brand guidelines from
+  here:](#universitys-brand-guidelines-from-here-1)
+- [https://strathmore.edu/brand-guidelines/](#httpsstrathmoreedubrand-guidelines-1)
+
+# Student Details
+
+|                                 |                                                              |                                                                                                                                                                                   |
+|---------------------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                                 | **Student ID Numbers and Names of Group Members**            | \| \| 1. 136346 - 4C - Ngumi Joshua \| \| 2. 127559 - 4C - Joseph Watunu \| 3. 134775 - 4C - Hakeem Alavi \| \| 4. 135863 - 4C - Muema Ian \| \| 5. 134141 - 4C - Aicha Mbongo \| |
+| **GitHub Classroom Group Name** | Business-intelligent                                         |                                                                                                                                                                                   |
+| **Course Code**                 | BBT4206                                                      |                                                                                                                                                                                   |
+| **Course Name**                 | Business Intelligence II                                     |                                                                                                                                                                                   |
+| **Program**                     | Bachelor of Business Information Technology                  |                                                                                                                                                                                   |
+| **Semester Duration**           | 21<sup>st</sup> August 2023 to 28<sup>th</sup> November 2023 |                                                                                                                                                                                   |
+
+# Setup Chunk
+
+**Note:** the following “*KnitR*” options have been set as the
+defaults:  
+`knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE, collapse = FALSE, tidy.opts = list(width.cutoff = 80), tidy = TRUE)`.
+
+More KnitR options are documented here
+<https://bookdown.org/yihui/rmarkdown-cookbook/chunk-options.html> and
+here <https://yihui.org/knitr/options/>.
+
+**Note:** the following “*R Markdown*” options have been set as the
+defaults:
+
+> output:  
+>   
+> github_document:  
+> toc: yes  
+> toc_depth: 4  
+> fig_width: 6  
+> fig_height: 4  
+> df_print: default  
+>   
+> editor_options:  
+> chunk_output_type: console
+
+# **Explanatory Data Analysis**
+
+## Loading Libraries
+
+`{# eg.} ## ggplot2 - For data visualizations using the Grammar for Graphics package ---- if (!is.element("ggplot2", installed.packages()[, 1])) {   install.packages("ggplot2", dependencies = TRUE) } require("ggplot2")`
+
+## Loading Dataset
+
+``` student_evaluation_dataset
+  read_csv("data/Mid_Term_Course_Evaluation_Form_Preprocessed.CSV",
+           col_types =
+             cols(
+               class_group = col_factor(levels = c("A", "B", "C")),
+               Gender = col_factor(levels = c("1", "0"))),
+               locale = locale())
+```
+
+## Text Preprocessing
+
+\`\`\`{# Function to expand contractions} expand_contractions \<-
+function(doc) { doc \<- gsub(“I’m”, “I am”, doc, ignore.case = TRUE) doc
+\<- gsub(“you’re”, “you are”, doc, ignore.case = TRUE) doc \<-
+gsub(“he’s”, “he is”, doc, ignore.case = TRUE) doc \<- gsub(“she’s”,
+“she is”, doc, ignore.case = TRUE) doc \<- gsub(“it’s”, “it is”, doc,
+ignore.case = TRUE) doc \<- gsub(“we’re”, “we are”, doc, ignore.case =
+TRUE) doc \<- gsub(“they’re”, “they are”, doc, ignore.case = TRUE) doc
+\<- gsub(“I’ll”, “I will”, doc, ignore.case = TRUE) doc \<-
+gsub(“you’ll”, “you will”, doc, ignore.case = TRUE) doc \<-
+gsub(“he’ll”, “he will”, doc, ignore.case = TRUE) doc \<- gsub(“she’ll”,
+“she will”, doc, ignore.case = TRUE) doc \<- gsub(“it’ll”, “it will”,
+doc, ignore.case = TRUE) doc \<- gsub(“we’ll”, “we will”, doc,
+ignore.case = TRUE) doc \<- gsub(“they’ll”, “they will”, doc,
+ignore.case = TRUE) doc \<- gsub(“won’t”, “will not”, doc, ignore.case =
+TRUE) doc \<- gsub(“can’t”, “cannot”, doc, ignore.case = TRUE) doc \<-
+gsub(“n’t”, ” not”, doc, ignore.case = TRUE) return(doc) }
+
+# Select the group, gender, average course evaluation rating,
+
+# and most importantly, the likes and wishes from the original dataset
+
+evaluation_likes_and_wishes \<- student_evaluation_dataset %\>%
+mutate(`Gender` = ifelse(Gender == 1, “Male”, “Female”)) %\>%
+rename(`Group` = class_group) %\>% rename(Likes =
+`Q05_Likes->D - 1. Write two things you like about the teaching and learning in this unit so far.`)
+%\>% \# nolint rename(Wishes =
+`Q05_Wishes->D - 2. Write at least one recommendation to improve the teaching and learning in this unit (for the remaining weeks in the semester)`)
+%\>% \# nolint select(`Group`, `Gender`, `Absenteeism`, Likes, Wishes)
+%\>% filter(!is.na(`Absenteeism`)) %\>% arrange(`Group`)
+
+evaluation_likes_and_wishes$Likes <- sapply(  evaluation_likes_and_wishes$Likes,
+expand_contractions)
+evaluation_likes_and_wishes$Wishes <- sapply(  evaluation_likes_and_wishes$Wishes,
+expand_contractions)
+
+head(evaluation_likes_and_wishes, 10)
+
+# Function to remove special characters and convert all text to a standard
+
+# lower case
+
+remove_special_characters \<- function(doc) { gsub(“\[^a-zA-Z0-9 \]”,
+““, doc, ignore.case = TRUE) }
+
+evaluation_likes_and_wishes$Likes <- sapply(evaluation_likes_and_wishes$Likes,
+remove_special_characters)
+evaluation_likes_and_wishes$Wishes <- sapply(evaluation_likes_and_wishes$Wishes,
+remove_special_characters)
+
+# Convert everything to lower case (to standardize the text)
+
+evaluation_likes_and_wishes$Likes <- sapply(evaluation_likes_and_wishes$Likes,
+tolower)
+evaluation_likes_and_wishes$Wishes <- sapply(evaluation_likes_and_wishes$Wishes,
+tolower)
+
+# After removing special characters and converting everything to lower case
+
+head(evaluation_likes_and_wishes, 10)
+
+write.csv(evaluation_likes_and_wishes, file =
+“data/evaluation_likes_and_wishes.csv”, row.names = FALSE)
+
+# Function to censor/remove unwanted words
+
+undesirable_words \<- c(“wow”, “lol”, “none”, “na”, “nothing”)
+
+# unnest and remove stopwords, undesirable words, and short words
+
+evaluation_likes_filtered \<- evaluation_likes_and_wishes %\>% \# nolint
+unnest_tokens(word, Likes) %\>% \# do not join where the word is in the
+list of stopwords anti_join(stop_words, by = c(“word”)) %\>% distinct()
+%\>% filter(!word %in% undesirable_words) %\>% filter(nchar(word) \> 3)
+%\>% rename(`Likes (tokenized)` = word) %\>% select(-Wishes)
+
+write.csv(evaluation_likes_filtered, file =
+“data/evaluation_likes_filtered.csv”, row.names = FALSE)
+
+evaluation_wishes_filtered \<- evaluation_likes_and_wishes %\>% \#
+nolint unnest_tokens(word, Wishes) %\>% \# do not join where the word is
+in the list of stopwords anti_join(stop_words, by = c(“word”)) %\>%
+distinct() %\>% filter(!word %in% undesirable_words) %\>%
+filter(nchar(word) \> 3) %\>% rename(`Wishes (tokenized)` = word) %\>%
+select(-Likes)
+
+write.csv(evaluation_wishes_filtered, file =
+“data/evaluation_wishes_filtered.csv”, row.names = FALSE)
+
+
+    ## Loading Lexicon
+
+    ```{# 3 common lexicons include:}
+    ### NRC ----
+    # By Mohammad & Turney (2013)
+    # Assigns words into one or more of the following ten categories:
+    # positive, negative, anger, anticipation, disgust, fear, joy, sadness,
+    # surprise, and trust.
+    nrc <- get_sentiments("nrc")
+    View(nrc)
+
+    ### AFINN ----
+    # Assigns words with a score that runs between -5 and 5. Negative scores
+    # indicate negative sentiments and positive scores indicate positive sentiments
+    afinn <- get_sentiments(lexicon = "afinn")
+    View(afinn)
+
+    ### Bing ----
+    # Assigns words into positive and negative categories only
+    bing <- get_sentiments("bing")
+    View(bing)
+
+    ### Loughran ----
+    # By Loughran & McDonald, (2010)
+    # The Loughran lexicon is specifically designed for financial text analysis and
+    # categorizes words into different financial sentiment categories.
+    loughran <- get_sentiments("loughran")
+    View(loughran)
+
+## Inner Join the Likes/Wishes with the Corresponding Sentiment
+
+``` evaluation_likes_filtered_nrc
+  inner_join(get_sentiments("nrc"),
+             by = join_by(`Likes (tokenized)` == word),
+             relationship = "many-to-many")
+
+evaluation_wishes_filtered_nrc <- evaluation_wishes_filtered %>%
+  inner_join(get_sentiments("nrc"),
+             by = join_by(`Wishes (tokenized)` == word),
+             relationship = "many-to-many")
+```
+
+## Overall Sentiment
+
+\`\``{## Evaluation Likes ----} nrc_likes_plot <- evaluation_likes_filtered_nrc %>%   group_by(sentiment) %>%   # You can filter by the class group if you wish   # filter(`Class
+Group`== "A") %>%   summarise(word_count = n()) %>%   ungroup() %>%   mutate(sentiment = reorder(sentiment, word_count)) %>%   #`fill
+= -word_count\` is used to make the larger bars darker
+ggplot(aes(sentiment, word_count, fill = -word_count)) + geom_col() +
+guides(fill = FALSE) + \# Turn off the legend blue_grey_theme() + labs(x
+= “Sentiment”, y = “Word Count”) + \# scale_y_continuous(limits = c(0,
+15000)) + \#Hard code the axis limit ggtitle(“Lexicon-Based Sentiment
+Analysis of Mid-Term Course Evaluation Likes”) + coord_flip()
+plot(nrc_likes_plot)
+
+# Various organizations have brand guidelines. You can download the
+
+# University’s brand guidelines from here:
+
+# <https://strathmore.edu/brand-guidelines/>
+
+img \<- “images/SCES-logo-01-blue-grey-bg-with-meme-space.jpg” \# The
+meme’s label can be specified here: lab \<- “The BBT4206: Business
+Intelligence II” \# Overlay the plot on the image and create the meme
+file meme(img, lab, “memes/nrc_likes_plot.jpg”, inset = nrc_likes_plot)
+\#Read the file back in and display it! nrc_meme \<-
+image_read(“memes/nrc_likes_plot.jpg”) plot(nrc_meme)
+
+## Evaluation Wishes —-
+
+nrc_wishes_plot \<- evaluation_wishes_filtered_nrc %\>%
+group_by(sentiment) %\>% \# You can filter by the class group if you
+wish \# filter(`Class Group` == “A”) %\>% summarise(word_count = n())
+%\>% ungroup() %\>% mutate(sentiment = reorder(sentiment, word_count))
+%\>% \# fill = -word_count is used to make the larger bars darker
+ggplot(aes(sentiment, word_count, fill = -word_count)) + geom_col() +
+guides(fill = FALSE) + \# Turn off the legend blue_grey_theme() + labs(x
+= “Sentiment”, y = “Word Count”) + \# scale_y_continuous(limits = c(0,
+15000)) + \#Hard code the axis limit ggtitle(“Lexicon-Based Sentiment
+Analysis of Mid-Term Course Evaluation Wishes”) + coord_flip()
+plot(nrc_wishes_plot)
+
+# Various organizations have brand guidelines. You can download the
+
+# University’s brand guidelines from here:
+
+# <https://strathmore.edu/brand-guidelines/>
+
+img \<- “images/SCES-logo-01-blue-grey-bg-with-meme-space.jpg” \# The
+meme’s label can be specified here: lab \<- “The BBT4206: Business
+Intelligence II” \# Overlay the plot on the image and create the meme
+file meme(img, lab, “memes/nrc_wishes_plot.jpg”, inset =
+nrc_wishes_plot) \#Read the file back in and display it! nrc_meme \<-
+image_read(“memes/nrc_wishes_plot.jpg”) plot(nrc_meme) \`\`\`
+
+and more.
